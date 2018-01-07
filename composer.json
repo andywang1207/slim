@@ -4,11 +4,12 @@
         "slim/slim": "^3.9",
         "linecorp/line-bot-sdk": "^2.3",
         "monolog/monolog": ">=1.1.0",
-        "vlucas/phpdotenv": "^2.4"
+        "vlucas/phpdotenv": "^2.4",
+        "php-di/php-di": "^5.4"
     },
     "autoload": {
         "psr-4": {
-        	"LINE\\": "src/"
+        	"App\\": "app/"
         }
     }
 }
