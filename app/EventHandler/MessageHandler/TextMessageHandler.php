@@ -18,11 +18,13 @@ use LINE\LINEBot\MessageBuilder\TemplateBuilder\ButtonTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselColumnTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ConfirmTemplateBuilder;
+use LINE\LINEBot\MessageBuilder\TextMessageBuilder;
 
 class TextMessageHandler implements EventHandler
 {
     /** @var LINEBot $bot */
-    private $bot;
+	private $feBot;
+	private $beBot;
     /** @var \Monolog\Logger $logger */
     private $logger;
     /** @var \Slim\Http\Request $logger */
@@ -37,9 +39,10 @@ class TextMessageHandler implements EventHandler
      * @param \Slim\Http\Request $req
      * @param TextMessage $textMessage
      */
-    public function __construct($bot, $logger, $req, TextMessage $textMessage)
+    public function __construct($feBot, $beBot, $logger, $req, TextMessage $textMessage)
     {
-        $this->bot = $bot;
+        $this->feBot = $feBot;
+        $this->beBot = $beBot;
         $this->logger = $logger;
         $this->req = $req;
         $this->textMessage = $textMessage;
@@ -58,19 +61,19 @@ class TextMessageHandler implements EventHandler
                 break;
             case 'bye':
                 if ($this->textMessage->isRoomEvent()) {
-                    $this->bot->replyText($replyToken, 'Leaving room');
-                    $this->bot->leaveRoom($this->textMessage->getRoomId());
+                    $this->feBot->replyText($replyToken, 'Leaving room');
+                    $this->feBot->leaveRoom($this->textMessage->getRoomId());
                     break;
                 }
                 if ($this->textMessage->isGroupEvent()) {
-                    $this->bot->replyText($replyToken, 'Leaving group');
-                    $this->bot->leaveGroup($this->textMessage->getGroupId());
+                    $this->feBot->replyText($replyToken, 'Leaving group');
+                    $this->feBot->leaveGroup($this->textMessage->getGroupId());
                     break;
                 }
-                $this->bot->replyText($replyToken, 'Bot cannot leave from 1:1 chat');
+                $this->feBot->replyText($replyToken, 'Bot cannot leave from 1:1 chat');
                 break;
             case 'confirm':
-                $this->bot->replyMessage(
+                $this->feBot->replyMessage(
                     $replyToken,
                     new TemplateMessageBuilder(
                         'Confirm alt text',
@@ -95,7 +98,7 @@ class TextMessageHandler implements EventHandler
                     ]
                 );
                 $templateMessage = new TemplateMessageBuilder('Button alt text', $buttonTemplateBuilder);
-                $this->bot->replyMessage($replyToken, $templateMessage);
+                $this->feBot->replyMessage($replyToken, $templateMessage);
                 break;
             case 'carousel':
                 $imageUrl = UrlBuilder::buildUrl($this->req, ['static', 'buttons', '1040.jpg']);
@@ -110,7 +113,7 @@ class TextMessageHandler implements EventHandler
                     ]),
                 ]);
                 $templateMessage = new TemplateMessageBuilder('Button alt text', $carouselTemplateBuilder);
-                $this->bot->replyMessage($replyToken, $templateMessage);
+                $this->feBot->replyMessage($replyToken, $templateMessage);
                 break;
             case 'imagemap':
                 $richMessageUrl = UrlBuilder::buildUrl($this->req, ['static', 'rich']);
@@ -137,10 +140,12 @@ class TextMessageHandler implements EventHandler
                         )
                     ]
                 );
-                $this->bot->replyMessage($replyToken, $imagemapMessageBuilder);
+                $this->feBot->replyMessage($replyToken, $imagemapMessageBuilder);
                 break;
             default:
+            	//兩個bot必須是同一個provider才可以
                 $this->echoBack($replyToken, $text);
+                $this->pushToBe($text);
                 break;
         }
     }
@@ -152,24 +157,32 @@ class TextMessageHandler implements EventHandler
     private function echoBack($replyToken, $text)
     {
         $this->logger->info("Returns echo message $replyToken: $text");
-        $this->bot->replyText($replyToken, $text);
+        $this->feBot->replyText($replyToken, $text);
+    }
+    
+    private function pushToBe($text)
+    {
+    	$uid = $this->textMessage->getUserId();
+    	$tb = new TextMessageBuilder($text);
+    	$r = $this->beBot->pushMessage($uid, $tb);
+ 		echo $r;
     }
 
     private function sendProfile($replyToken, $userId)
     {
         if (!isset($userId)) {
-            $this->bot->replyText($replyToken, "Bot can't use profile API without user ID");
+            $this->feBot->replyText($replyToken, "Bot can't use profile API without user ID");
             return;
         }
 
-        $response = $this->bot->getProfile($userId);
+        $response = $this->feBot->getProfile($userId);
         if (!$response->isSucceeded()) {
-            $this->bot->replyText($replyToken, $response->getRawBody());
+            $this->feBot->replyText($replyToken, $response->getRawBody());
             return;
         }
 
         $profile = $response->getJSONDecodedBody();
-        $this->bot->replyText(
+        $this->feBot->replyText(
             $replyToken,
             'Display name: ' . $profile['displayName'],
             'Status message: ' . $profile['statusMessage']

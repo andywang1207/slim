@@ -18,16 +18,28 @@ class Dependency
             return $logger;
         };
 
-        $container['bot'] = function ($c) {
+        $container['beBot'] = function ($c) {
             $settings = $c->get('settings');
-            $channelSecret = $settings['bot']['channelSecret'];
-            $channelToken = $settings['bot']['channelToken'];
+            $channelSecret = $settings['beBot']['channelSecret'];
+            $channelToken = $settings['beBot']['channelToken'];
             $apiEndpointBase = $settings['apiEndpointBase'];
             $bot = new LINEBot(new CurlHTTPClient($channelToken), [
                 'channelSecret' => $channelSecret,
                 'endpointBase' => $apiEndpointBase, // <= Normally, you can omit this
             ]);
             return $bot;
+        };
+        
+        $container['feBot'] = function ($c) {
+        	$settings = $c->get('settings');
+        	$channelSecret = $settings['feBot']['channelSecret'];
+        	$channelToken = $settings['feBot']['channelToken'];
+        	$apiEndpointBase = $settings['apiEndpointBase'];
+        	$bot = new LINEBot(new CurlHTTPClient($channelToken), [
+        			'channelSecret' => $channelSecret,
+        			'endpointBase' => $apiEndpointBase, // <= Normally, you can omit this
+        	]);
+        	return $bot;
         };
     }
 }

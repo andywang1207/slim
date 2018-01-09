@@ -18,10 +18,15 @@ class Setting
                     'path' => __DIR__ . '/../../logs/app.log',
                 ],
 
-                'bot' => [
-                    'channelToken' => getenv('LINEBOT_CHANNEL_TOKEN'),
-                    'channelSecret' => getenv('LINEBOT_CHANNEL_SECRET'),
+                'beBot' => [
+                    'channelToken' => getenv('LINEBOT_BE_CHANNEL_TOKEN'),
+                    'channelSecret' => getenv('LINEBOT_BE_CHANNEL_SECRET'),
                 ],
+            		
+            	'feBot' => [
+            		'channelToken' => getenv('LINEBOT_FE_CHANNEL_TOKEN'),
+            		'channelSecret' => getenv('LINEBOT_FE_CHANNEL_SECRET'),
+            	],
 
                 'apiEndpointBase' => getenv('LINEBOT_API_ENDPOINT_BASE'),
             ],

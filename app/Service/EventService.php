@@ -38,13 +38,15 @@ class EventService
 {
 
 	private $req;
-	private $bot;
+	private $feBot;
+	private $beBot;
 	private $logger;
 	
-	public function __construct($req, $bot, $logger)
+	public function __construct($req, $feBot, $beBot, $logger)
 	{
 		$this->req = $req;
-		$this->bot = $bot;
+		$this->feBot = $feBot;
+		$this->beBot = $beBot;
 		$this->logger = $logger;
 	}
 	
@@ -58,17 +60,17 @@ class EventService
 			if ($event instanceof MessageEvent) {
 				$handler = $this->messageEventHandle($event);
 			} elseif ($event instanceof UnfollowEvent) {
-				$handler = new UnfollowEventHandler($this->bot, $this->logger, $event);
+				$handler = new UnfollowEventHandler($this->feBot, $this->logger, $event);
 			} elseif ($event instanceof FollowEvent) {
-				$handler = new FollowEventHandler($this->bot, $this->logger, $event);
+				$handler = new FollowEventHandler($this->feBot, $this->logger, $event);
 			} elseif ($event instanceof JoinEvent) {
-				$handler = new JoinEventHandler($this->bot, $this->logger, $event);
+				$handler = new JoinEventHandler($this->feBot, $this->logger, $event);
 			} elseif ($event instanceof LeaveEvent) {
-				$handler = new LeaveEventHandler($this->bot, $this->logger, $event);
+				$handler = new LeaveEventHandler($this->feBot, $this->logger, $event);
 			} elseif ($event instanceof PostbackEvent) {
-				$handler = new PostbackEventHandler($this->bot, $this->logger, $event);
+				$handler = new PostbackEventHandler($this->feBot, $this->logger, $event);
 			} elseif ($event instanceof BeaconDetectionEvent) {
-				$handler = new BeaconEventHandler($this->bot, $this->logger, $event);
+				$handler = new BeaconEventHandler($this->feBot, $this->logger, $event);
 			} elseif ($event instanceof UnknownEvent) {
 				$logger->info(sprintf('Unknown message type has come [type: %s]', $event->getType()));
 			} else {
@@ -86,7 +88,7 @@ class EventService
     public function messageEventHandle($event) {
     	$handler = null;
 		if ($event instanceof TextMessage) {
-			$handler = new TextMessageHandler($this->bot, $this->logger, $this->req, $event);
+			$handler = new TextMessageHandler($this->feBot, $this->beBot, $this->logger, $this->req, $event);
 		} /* elseif ($event instanceof StickerMessage) {
 			$handler = new StickerMessageHandler($bot, $logger, $event);
 		} elseif ($event instanceof LocationMessage) {

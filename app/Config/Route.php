@@ -14,7 +14,7 @@ class Route
     {
         $app->post('/events', function (\Slim\Http\Request $req, \Slim\Http\Response $res) {
             /** @var LINEBot $bot */
-            $bot = $this->bot;
+            $feBot = $this->feBot;
             /** @var \Monolog\Logger $logger */
             $logger = $this->logger;
 
@@ -25,7 +25,7 @@ class Route
             }
 
             try {
-                $events = $bot->parseEventRequest($req->getBody(), $signature[0]);
+                $events = $feBot->parseEventRequest($req->getBody(), $signature[0]);
             } catch (InvalidSignatureException $e) {
                 $logger->info('Invalid signature');
                 return $res->withStatus(400, 'Invalid signature');
@@ -33,7 +33,7 @@ class Route
                 return $res->withStatus(400, "Invalid event request");
             }
 
-            $service = new EventService($res, $bot, $logger);
+            $service = new EventService($res, $feBot, $this->beBot, $logger);
             $service->hanle($events);
 
             $res->write('OK');
